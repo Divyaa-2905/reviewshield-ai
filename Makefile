@@ -23,7 +23,7 @@ seed:
 	DATABASE_URL=sqlite:///./reviewshield.db PYTHONPATH=backend:. python scripts/seed_demo_data.py
 
 dev-backend:
-	cd backend && DATABASE_URL=sqlite:///../reviewshield.db . .venv/bin/activate && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+	cd backend && DATABASE_URL=sqlite:///../reviewshield.db PYTHONPATH=.. . .venv/bin/activate && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 dev-frontend:
 	cd frontend && npm run dev

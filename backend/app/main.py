@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import app.bootstrap  # noqa: F401 — add project root to sys.path before other imports
 from app.api.auth import router as auth_router
 from app.api.health import router as health_router
 from app.api.routes import router as api_router

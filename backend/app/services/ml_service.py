@@ -1,15 +1,5 @@
-import sys
-from datetime import UTC, datetime
-from pathlib import Path
+from datetime import datetime
 
-from sqlalchemy.orm import Session
-
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "backend"))
-sys.path.insert(0, str(ROOT))
-
-from app.core.config import get_settings
-from app.repositories.review_repository import ReviewRepository
 from ml.behavior.profiler import analyze_reviewer_behavior
 from ml.explainability.explainer import explain_prediction
 from ml.fusion.model import fuse_modalities
@@ -17,6 +7,11 @@ from ml.graph.intelligence import analyze_graph, build_review_graph
 from ml.nlp.linguistic_features import analyze_text, text_risk_score
 from ml.similarity.engine import build_similarity_index, pairwise_similarity_risk
 from ml.temporal.analyzer import analyze_temporal_patterns
+from sqlalchemy.orm import Session
+
+import app.bootstrap  # noqa: F401
+from app.core.config import get_settings
+from app.repositories.review_repository import ReviewRepository
 
 
 class MLService:

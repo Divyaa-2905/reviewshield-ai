@@ -18,8 +18,8 @@ from app.schemas.domain import (
     PaginatedResponse,
     PredictionResponse,
     ProductResponse,
-    ReviewResponse,
     ReviewerResponse,
+    ReviewResponse,
     SimilarityResponse,
 )
 from app.services.analytics_service import AnalyticsService
