@@ -53,6 +53,8 @@ htmlcov/
 models/*.pkl
 models/*.pt
 models/*.bin
+*.db
+reviewshield.db
 data/raw/*
 data/processed/*
 !data/raw/.gitkeep

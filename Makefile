@@ -1,15 +1,14 @@
-.PHONY: help install install-backend install-frontend dev dev-backend dev-frontend test test-backend test-frontend lint lint-backend lint-frontend build build-frontend clean
+.PHONY: help install install-backend install-frontend dev dev-backend dev-frontend seed test test-backend test-frontend test-ml lint lint-backend lint-frontend build build-frontend clean docker-up docker-down
 
 help:
 	@echo "ReviewShield AI - Development Commands"
 	@echo ""
 	@echo "  make install          Install all dependencies"
-	@echo "  make dev              Run backend and frontend (separate terminals)"
+	@echo "  make seed             Seed demo data (SQLite)"
 	@echo "  make dev-backend      Run FastAPI backend"
 	@echo "  make dev-frontend     Run Vite frontend"
 	@echo "  make test             Run all tests"
-	@echo "  make lint             Run all linters"
-	@echo "  make build            Build frontend for production"
+	@echo "  make docker-up        Start with Docker Compose"
 	@echo "  make clean            Remove build artifacts"
 
 install: install-backend install-frontend
@@ -20,16 +19,22 @@ install-backend:
 install-frontend:
 	cd frontend && npm install
 
+seed:
+	DATABASE_URL=sqlite:///./reviewshield.db PYTHONPATH=backend:. python scripts/seed_demo_data.py
+
 dev-backend:
-	cd backend && . .venv/bin/activate && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+	cd backend && DATABASE_URL=sqlite:///../reviewshield.db . .venv/bin/activate && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 dev-frontend:
 	cd frontend && npm run dev
 
-test: test-backend test-frontend
+test: test-backend test-ml
 
 test-backend:
-	cd backend && . .venv/bin/activate && pytest -v
+	cd backend && DATABASE_URL=sqlite:///:memory: . .venv/bin/activate && PYTHONPATH=..:. pytest -v
+
+test-ml:
+	cd backend && . .venv/bin/activate && PYTHONPATH=..:. pytest ../ml/tests -v
 
 test-frontend:
 	cd frontend && npm run test -- --run
@@ -47,6 +52,12 @@ build: build-frontend
 build-frontend:
 	cd frontend && npm run build
 
+docker-up:
+	docker compose up --build -d
+
+docker-down:
+	docker compose down
+
 clean:
-	rm -rf backend/.venv backend/.pytest_cache backend/.ruff_cache
+	rm -rf backend/.venv backend/.pytest_cache backend/.ruff_cache reviewshield.db
 	rm -rf frontend/node_modules frontend/dist

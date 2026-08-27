@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     api_port: int = 8000
     secret_key: str = "change-me-in-production"
     cors_origins: str = "http://localhost:5173,http://localhost:3000"
-    database_url: str = "postgresql://reviewshield:reviewshield@localhost:5432/reviewshield"
+    database_url: str = "sqlite:///./reviewshield.db"
     jwt_secret_key: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 30

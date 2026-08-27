@@ -1,51 +1,41 @@
-import { HealthStatus } from './components/HealthStatus'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { useAuth } from './contexts/AuthContext'
+import { DashboardLayout } from './layouts/DashboardLayout'
+import { LoginPage } from './pages/LoginPage'
+import { OverviewPage } from './pages/OverviewPage'
+import { AnalyzerPage } from './pages/AnalyzerPage'
+import { ReviewsPage } from './pages/ReviewsPage'
+import { ReviewDetailPage } from './pages/ReviewDetailPage'
+import { ReviewersPage } from './pages/ReviewersPage'
+import { ProductsPage } from './pages/ProductsPage'
+import { ClustersPage } from './pages/ClustersPage'
+import { GraphPage } from './pages/GraphPage'
+import { AnalyticsPage } from './pages/AnalyticsPage'
+import { SettingsPage } from './pages/SettingsPage'
 
-function App() {
-  return (
-    <div className="min-h-screen bg-slate-950">
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
-              Review Fraud Intelligence
-            </p>
-            <h1 className="text-2xl font-bold text-white">ReviewShield AI</h1>
-          </div>
-          <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300">
-            Phase 1 — Foundation
-          </span>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-5xl px-6 py-10">
-        <section className="mb-8">
-          <h2 className="mb-2 text-xl font-semibold text-white">
-            AI-powered review fraud intelligence
-          </h2>
-          <p className="max-w-2xl text-slate-400">
-            Multi-modal evidence platform combining language, behaviour, timing, similarity,
-            and network analysis for evidence-based fraud risk assessment.
-          </p>
-        </section>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <HealthStatus />
-
-          <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-6 shadow-lg">
-            <h2 className="mb-4 text-lg font-semibold text-white">Planned Capabilities</h2>
-            <ul className="grid gap-2 text-sm text-slate-300">
-              <li>NLP and transformer embeddings</li>
-              <li>Reviewer behaviour profiling</li>
-              <li>Temporal pattern detection</li>
-              <li>Semantic similarity analysis</li>
-              <li>Graph-based coordination detection</li>
-              <li>Multimodal fraud scoring with explainability</li>
-            </ul>
-          </div>
-        </div>
-      </main>
-    </div>
-  )
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth()
+  if (loading) return <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-400">Loading...</div>
+  if (!user) return <Navigate to="/login" replace />
+  return <>{children}</>
 }
 
-export default App
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+        <Route path="/" element={<OverviewPage />} />
+        <Route path="/analyzer" element={<AnalyzerPage />} />
+        <Route path="/reviews" element={<ReviewsPage />} />
+        <Route path="/reviews/:id" element={<ReviewDetailPage />} />
+        <Route path="/reviewers" element={<ReviewersPage />} />
+        <Route path="/products" element={<ProductsPage />} />
+        <Route path="/clusters" element={<ClustersPage />} />
+        <Route path="/graph" element={<GraphPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+      </Route>
+    </Routes>
+  )
+}

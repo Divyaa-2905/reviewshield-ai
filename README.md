@@ -2,7 +2,9 @@
 
 **AI-powered review fraud intelligence that combines language, behaviour, timing, similarity and network evidence.**
 
-ReviewShield AI is a multi-modal AI system for online review fraud and coordinated manipulation detection. It is designed as an evidence-based risk assessment platform — not a single-signal fake review classifier.
+[![CI](https://github.com/shivanshehehe/reviewshield-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/shivanshehehe/reviewshield-ai/actions)
+
+Multi-Modal AI System for Online Review Fraud and Coordinated Manipulation Detection.
 
 ## Problem
 
@@ -10,15 +12,13 @@ Text-only fake review detection misses coordinated manipulation, behavioural ano
 
 ## Solution
 
-ReviewShield AI fuses multiple evidence modalities:
+ReviewShield AI fuses five evidence modalities into an evidence-based risk assessment:
 
-- NLP and transformer embeddings
-- Reviewer behaviour profiling
-- Temporal pattern analysis
-- Semantic similarity detection
-- Graph-based coordination analysis
-- Multimodal ML scoring
-- Explainable AI
+- **NLP** — lexical diversity, promotional language, sentiment proxy
+- **Behaviour** — review volume, rating patterns, product diversity
+- **Temporal** — burst detection, synchronized activity
+- **Similarity** — TF-IDF semantic duplicate detection
+- **Graph** — NetworkX reviewer-product network analysis
 
 ## Architecture
 
@@ -43,79 +43,89 @@ flowchart LR
 
 | Layer | Technologies |
 |-------|-------------|
-| Frontend | React, TypeScript, Vite, Tailwind CSS |
-| Backend | Python, FastAPI, SQLAlchemy, Alembic, PostgreSQL |
-| ML | scikit-learn, PyTorch, Hugging Face, sentence-transformers, XGBoost, SHAP, NetworkX |
-| DevOps | Docker, Docker Compose, GitHub Actions |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS, Recharts |
+| Backend | Python, FastAPI, SQLAlchemy, JWT |
+| ML | scikit-learn, NetworkX, XGBoost, SHAP |
+| Database | SQLite (dev) / PostgreSQL (Docker) |
+| DevOps | Docker Compose, GitHub Actions |
 
-## Project Structure
-
-```
-reviewshield-ai/
-├── frontend/          # React dashboard
-├── backend/           # FastAPI application
-├── ml/                # Machine learning modules
-├── data/              # Raw, processed, and sample data
-├── scripts/           # Data and utility scripts
-├── docs/              # Documentation
-└── .github/workflows/ # CI/CD
-```
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.11+
-- Node.js 20+
-- PostgreSQL 15+ (for full backend; not required for Phase 1 health check)
-
-### Installation
+## Quick Start
 
 ```bash
 git clone https://github.com/shivanshehehe/reviewshield-ai.git
 cd reviewshield-ai
 cp .env.example .env
 make install
+make seed
 ```
 
-### Development
-
 ```bash
-# Terminal 1 — backend
+# Terminal 1
 make dev-backend
 
-# Terminal 2 — frontend
+# Terminal 2
 make dev-frontend
 ```
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8000
-- API docs: http://localhost:8000/docs
-- Health check: http://localhost:8000/health
+- **Frontend**: http://localhost:5173
+- **API Docs**: http://localhost:8000/docs
+- **Login**: admin / admin123
 
-### Testing
+## Docker
 
 ```bash
-make test
-make lint
-make build
+docker compose up --build
 ```
 
-## Current Status
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8000
 
-**Phase 1 complete** — repository initialization with:
+## Dashboard Pages
 
-- Monorepo structure
-- FastAPI backend with `/health` endpoint
-- React frontend with backend connectivity check
-- GitHub Actions CI
-- Makefile and development tooling
+1. **Overview** — risk statistics and classification distribution
+2. **Analyzer** — submit and analyze review text
+3. **Investigation** — browse reviews with predictions
+4. **Reviewers** — reviewer risk intelligence
+5. **Products** — product-level intelligence
+6. **Clusters** — coordinated fraud clusters
+7. **Graph** — reviewer-product network explorer
+8. **Analytics** — model performance metrics
+9. **Settings** — system and model info
 
-See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed progress.
+## Demo Credentials
+
+| Role | Username | Password |
+|------|----------|----------|
+| Admin | admin | admin123 |
+| Analyst | analyst | analyst123 |
+| Viewer | viewer | viewer123 |
+
+## Project Structure
+
+```
+reviewshield-ai/
+├── frontend/          # React investigation dashboard
+├── backend/           # FastAPI + SQLAlchemy
+├── ml/                # NLP, behavior, temporal, similarity, graph, fusion
+├── scripts/           # Data pipeline + demo seeding
+├── docs/              # Architecture, methodology, API docs
+└── docker-compose.yml
+```
+
+## Testing
+
+```bash
+make test        # Backend + ML tests
+make lint        # Ruff + ESLint
+make build       # Frontend production build
+```
 
 ## Limitations
 
-This project is under active development. The system estimates fraud risk based on available evidence and must not be interpreted as definitive fraud proof.
+- Uses **DEMO DATA only** (synthetic, deterministic seed=42)
+- Risk scores are **estimates**, not proof of fraud
+- TF-IDF similarity used for CPU-friendly development
+- Not trained on real-world datasets
 
 ## License
 
@@ -123,4 +133,4 @@ MIT — see [LICENSE](LICENSE).
 
 ## Author
 
-Built by [shivanshehehe](https://github.com/shivanshehehe).
+[shivanshehehe](https://github.com/shivanshehehe)
