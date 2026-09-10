@@ -1,5 +1,7 @@
+from ml.evaluation.evaluate import evaluate_predictions
 from sqlalchemy.orm import Session
 
+from app.models.review import Review
 from app.repositories.analysis_repository import ClusterRepository
 from app.repositories.prediction_repository import PredictionRepository
 from app.repositories.review_repository import ReviewRepository
@@ -33,6 +35,19 @@ class AnalyticsService:
 
         classes = ["Genuine", "Suspicious", "Potentially Fake"]
         distribution = {c: self.prediction_repo.count_by_classification(c) for c in classes}
+        labeled_reviews = {
+            review.id: {"review_id": review.review_id, "review_label": review.review_label}
+            for review in self.db.query(Review).all()
+        }
+        eval_input = [
+            {
+                "review_pk": pred.review_id,
+                "classification": pred.classification,
+                "fraud_probability": pred.fraud_probability,
+            }
+            for pred in predictions
+        ]
+        evaluation = evaluate_predictions(eval_input, labeled_reviews)
         return {
             "total_predictions": len(predictions),
             "classification_distribution": distribution,
@@ -43,5 +58,18 @@ class AnalyticsService:
                 "temporal_risk": sum(p.temporal_risk for p in predictions) / len(predictions),
                 "similarity_risk": sum(p.similarity_risk for p in predictions) / len(predictions),
                 "graph_risk": sum(p.graph_risk for p in predictions) / len(predictions),
+            },
+            "precision": evaluation.get("precision"),
+            "recall": evaluation.get("recall"),
+            "f1": evaluation.get("f1"),
+            "accuracy": evaluation.get("accuracy"),
+            "roc_auc": evaluation.get("roc_auc"),
+            "pr_auc": evaluation.get("pr_auc"),
+            "labeled_reviews": evaluation.get("labeled_reviews"),
+            "threshold": evaluation.get("threshold"),
+            "evaluation": {
+                key: value
+                for key, value in evaluation.items()
+                if key not in {"roc_curve", "pr_curve"}
             },
         }

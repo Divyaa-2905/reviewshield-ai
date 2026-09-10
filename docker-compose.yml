@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     environment:
       POSTGRES_USER: reviewshield
       POSTGRES_PASSWORD: reviewshield
@@ -9,6 +9,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/sql/init_pgvector.sql:/docker-entrypoint-initdb.d/init_pgvector.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U reviewshield"]
       interval: 10s
@@ -25,6 +26,7 @@ services:
       JWT_SECRET_KEY: change-me-in-production
       CORS_ORIGINS: http://localhost:5173,http://localhost:3000,http://localhost
       ML_MODEL_VERSION: demo-v0.1.0
+      SIMILARITY_BACKEND: auto
     ports:
       - "8000:8000"
     depends_on:

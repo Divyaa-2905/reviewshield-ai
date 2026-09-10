@@ -1,0 +1,15 @@
+---
+description: Core ReviewShield agent contract. Always apply.
+alwaysApply: true
+---
+
+# ReviewShield
+
+Follow [AGENTS.md](../../AGENTS.md).
+
+- `POST /predictions/analyze` must not insert DB rows
+- Missing reviewer history redistributes fusion weights
+- Evaluation metrics require labels; never invent AUC
+- Similarity must fall back from Sentence-Transformers/FAISS to TF-IDF/numpy
+- Keep SQLite working; pgvector is optional Postgres-only
+- Verify dashboard behavior in the browser after UI changes

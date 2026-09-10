@@ -1,0 +1,12 @@
+---
+description: ML fusion, similarity, and evaluation conventions
+globs: ml/**/*.py
+alwaysApply: false
+---
+
+# ML layer
+
+- Change fusion only in `ml/fusion/model.py`
+- Similarity public API stays in `ml/similarity/engine.py`
+- Tests must run with `SIMILARITY_BACKEND=tfidf`
+- Amazon/Yelp column mapping belongs in `ml/data/loaders/`

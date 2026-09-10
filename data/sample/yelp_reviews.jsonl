@@ -1,0 +1,12 @@
+{"review_id":"yelp-0001","user_id":"yelp-spammer-01","business_id":"biz-pizza-01","stars":5,"text":"Amazing restaurant! Best ever! Highly recommend to everyone!!!","date":"2021-01-02","label":"fake"}
+{"review_id":"yelp-0002","user_id":"yelp-spammer-01","business_id":"biz-pizza-02","stars":5,"text":"Excellent quality and very fast service. Five stars!","date":"2021-01-02","label":"filtered"}
+{"review_id":"yelp-0003","user_id":"yelp-spammer-02","business_id":"biz-pizza-01","stars":5,"text":"Perfect food love it must visit for everyone","date":"2021-01-03","label":"fake"}
+{"review_id":"yelp-0004","user_id":"yelp-spammer-02","business_id":"biz-cafe-01","stars":5,"text":"This is the greatest place I have ever visited in my life","date":"2021-01-03","label":"spam"}
+{"review_id":"yelp-0005","user_id":"yelp-user-01","business_id":"biz-pizza-01","stars":4,"text":"Good pizza for the price. Crust was a bit chewy after it cooled.","date":"2021-01-04","label":"genuine"}
+{"review_id":"yelp-0006","user_id":"yelp-user-01","business_id":"biz-cafe-01","stars":3,"text":"Coffee was fine but the wait for a table was longer than expected.","date":"2021-01-08","label":"recommended"}
+{"review_id":"yelp-0007","user_id":"yelp-user-02","business_id":"biz-noodle-01","stars":4,"text":"Satisfied with the broth. Would come back for lunch again.","date":"2021-01-12","label":"genuine"}
+{"review_id":"yelp-0008","user_id":"yelp-user-02","business_id":"biz-pizza-02","stars":2,"text":"Arrived cold and the salad was wilted. Manager offered a remake.","date":"2021-01-18","label":"real"}
+{"review_id":"yelp-0009","user_id":"yelp-user-03","business_id":"biz-cafe-01","stars":5,"text":"Quiet corner table and the oat latte was actually not too sweet.","date":"2021-01-20","label":"genuine"}
+{"review_id":"yelp-0010","user_id":"yelp-spammer-03","business_id":"biz-noodle-01","stars":5,"text":"Superb quality outstanding value visit now","date":"2021-01-21","label":"fake"}
+{"review_id":"yelp-0011","user_id":"yelp-user-03","business_id":"biz-pizza-02","stars":3,"text":"Average experience. Nothing exceptional but no major issues.","date":"2021-01-25","label":"recommended"}
+{"review_id":"yelp-0012","user_id":"yelp-spammer-03","business_id":"biz-pizza-01","stars":5,"text":"Excellent food and very fast delivery.","date":"2021-01-21","label":"fake"}

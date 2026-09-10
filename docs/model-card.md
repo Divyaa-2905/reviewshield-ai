@@ -4,11 +4,11 @@
 
 **Purpose**: Evidence-based review fraud risk assessment
 
-**Training Data**: DEMO DATA only (synthetic, deterministic seed=42)
+**Training Data**: Demo seed plus optional Amazon/Yelp labeled files under `data/sample/`
 
 **Features**: 5 modality risk scores (text, behavior, temporal, similarity, graph)
 
-**Evaluation**: Classification distribution on demo dataset
+**Evaluation**: Precision, recall, F1, ROC-AUC, PR-AUC on labeled fake-vs-genuine reviews
 
 **Limitations**:
 - Not trained on real-world data

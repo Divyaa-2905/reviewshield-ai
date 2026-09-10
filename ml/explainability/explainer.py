@@ -32,6 +32,13 @@ def build_explanation(
     if not all_observations and not similarity_matches:
         lines.append("- No strong fraud indicators detected across available modalities.")
 
+    if result.missing_modalities:
+        lines.append(
+            "- Missing modalities: "
+            + ", ".join(result.missing_modalities)
+            + ". Their weights were redistributed."
+        )
+
     lines.append(f"Model version: {result.model_version}")
     return "\n".join(lines)
 

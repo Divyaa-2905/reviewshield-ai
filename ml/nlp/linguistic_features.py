@@ -1,7 +1,6 @@
 import re
 from collections import Counter
 
-
 PROMOTIONAL_WORDS = {
     "amazing", "best", "must buy", "highly recommend", "five stars",
     "perfect", "excellent", "fantastic", "wonderful", "love it",

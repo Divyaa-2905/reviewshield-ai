@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pandas as pd
 
-
 REQUIRED_COLUMNS = [
     "review_id",
     "reviewer_id",
@@ -14,7 +13,7 @@ REQUIRED_COLUMNS = [
 ]
 
 
-def load_dataset(path: str) -> pd.DataFrame:
+def load_raw_dataset(path: str) -> pd.DataFrame:
     file_path = Path(path)
     if not file_path.exists():
         raise FileNotFoundError(f"Dataset not found: {path}")
@@ -22,11 +21,39 @@ def load_dataset(path: str) -> pd.DataFrame:
     suffix = file_path.suffix.lower()
     if suffix == ".csv":
         return pd.read_csv(path)
+    if suffix == ".jsonl":
+        return pd.read_json(path, lines=True)
     if suffix == ".json":
-        return pd.read_json(path)
+        try:
+            return pd.read_json(path, lines=True)
+        except ValueError:
+            return pd.read_json(path)
     if suffix == ".parquet":
         return pd.read_parquet(path)
     raise ValueError(f"Unsupported format: {suffix}")
+
+
+def detect_dataset_kind(df: pd.DataFrame) -> str:
+    columns = {str(col).strip().lower() for col in df.columns}
+    if {"asin", "reviewtext"} & columns or "unixreviewtime" in columns or "overall" in columns:
+        return "amazon"
+    if {"business_id", "stars", "text"} <= columns or {"business_id", "user_id"} <= columns:
+        return "yelp"
+    return "canonical"
+
+
+def load_dataset(path: str, kind: str | None = None) -> pd.DataFrame:
+    df = load_raw_dataset(path)
+    detected = kind or detect_dataset_kind(df)
+    if detected == "amazon":
+        from ml.data.loaders.amazon import normalize_amazon_reviews
+
+        return normalize_amazon_reviews(df)
+    if detected == "yelp":
+        from ml.data.loaders.yelp import normalize_yelp_reviews
+
+        return normalize_yelp_reviews(df)
+    return df
 
 
 def validate_dataset(df: pd.DataFrame) -> dict:

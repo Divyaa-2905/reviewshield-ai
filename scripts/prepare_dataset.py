@@ -15,10 +15,12 @@ from ml.data.loaders.dataset_loader import load_dataset, save_report, validate_d
 def main() -> None:
     parser = argparse.ArgumentParser(description="Prepare review dataset")
     parser.add_argument("dataset", help="Input dataset path")
+    parser.add_argument("--kind", choices=["auto", "amazon", "yelp", "canonical"], default="auto")
     parser.add_argument("--output", default="data/processed/prepared_reviews.parquet")
     args = parser.parse_args()
 
-    df = load_dataset(args.dataset)
+    kind = None if args.kind == "auto" else args.kind
+    df = load_dataset(args.dataset, kind=kind)
     if "review_timestamp" in df.columns:
         df["review_timestamp"] = pd.to_datetime(df["review_timestamp"], errors="coerce")
     if "rating" in df.columns:

@@ -8,7 +8,7 @@ ReviewShield AI is a multi-modal fraud intelligence platform with a React fronte
 
 - **Frontend**: React + TypeScript + Vite + Tailwind CSS
 - **Backend**: FastAPI with JWT auth, repository pattern, service layer
-- **Database**: SQLAlchemy ORM (SQLite for dev, PostgreSQL for Docker)
+- **Database**: SQLAlchemy ORM (SQLite for dev, PostgreSQL + pgvector for Docker)
 - **ML Pipeline**: NLP, behavior, temporal, similarity, graph, fusion, explainability
 
 ## Data Flow

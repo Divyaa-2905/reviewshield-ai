@@ -3,6 +3,11 @@ import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recha
 import { api } from '../services/api'
 import { ErrorState, LoadingState } from '../components/ui'
 
+function pct(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) return 'n/a'
+  return `${Math.round(value * 100)}%`
+}
+
 export function AnalyticsPage() {
   const [metrics, setMetrics] = useState<any>(null)
   const [error, setError] = useState('')
@@ -24,6 +29,25 @@ export function AnalyticsPage() {
   return (
     <div>
       <h1 className="mb-6 text-2xl font-bold text-white">Model Analytics</h1>
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
+          <p className="text-sm text-slate-400">Precision</p>
+          <p className="text-3xl font-bold text-white">{pct(metrics.precision)}</p>
+          <p className="mt-1 text-xs text-slate-500">{metrics.labeled_reviews || 0} labeled · t={metrics.threshold ?? 0.4}</p>
+        </div>
+        <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
+          <p className="text-sm text-slate-400">Recall</p>
+          <p className="text-3xl font-bold text-white">{pct(metrics.recall)}</p>
+        </div>
+        <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
+          <p className="text-sm text-slate-400">ROC AUC</p>
+          <p className="text-3xl font-bold text-sky-400">{pct(metrics.roc_auc)}</p>
+        </div>
+        <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
+          <p className="text-sm text-slate-400">PR AUC</p>
+          <p className="text-3xl font-bold text-emerald-400">{pct(metrics.pr_auc)}</p>
+        </div>
+      </div>
       <div className="mb-6 grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-5">
           <p className="text-sm text-slate-400">Total Predictions</p>

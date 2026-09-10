@@ -38,6 +38,7 @@ def init_db() -> None:
         prediction,
         product,
         review,
+        review_embedding,
         review_similarity,
         reviewer,
         user,

@@ -1,0 +1,12 @@
+---
+description: FastAPI analyze-route and vector-store conventions
+globs: backend/**/*.py
+alwaysApply: false
+---
+
+# Backend layer
+
+- Analyze endpoint returns `AnalyzeResponse` with `persisted=false`
+- Do not create `Review` or `Prediction` rows from analyze
+- Vector persistence goes through `VectorStore` and is seed/index-time only
+- SQLAlchemy models must remain SQLite-safe

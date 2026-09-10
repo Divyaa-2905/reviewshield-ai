@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     ml_model_version: str = "demo-v0.1.0"
     ml_device: str = "cpu"
+    similarity_backend: str = "auto"
+    similarity_model: str = "all-MiniLM-L6-v2"
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -10,6 +10,7 @@ from app.repositories.product_repository import ProductRepository
 from app.repositories.review_repository import ReviewRepository
 from app.repositories.reviewer_repository import ReviewerRepository
 from app.schemas.domain import (
+    AnalyzeResponse,
     AnalyzeReviewRequest,
     DashboardStats,
     FraudClusterResponse,
@@ -109,8 +110,9 @@ def get_prediction(review_db_id: int, db: DbSession, _: ViewerUser) -> Predictio
     return PredictionResponse.model_validate(prediction)
 
 
-@router.post("/predictions/analyze", response_model=PredictionResponse, summary="Analyze a review")
-def analyze_review(data: AnalyzeReviewRequest, db: DbSession, _: AnalystUser) -> PredictionResponse:
+@router.post("/predictions/analyze", response_model=AnalyzeResponse, summary="Analyze a review")
+def analyze_review(data: AnalyzeReviewRequest, db: DbSession, _: AnalystUser) -> AnalyzeResponse:
+    """Score a review in-memory. Does not insert reviews or predictions."""
     reviewer_db_id = None
     if data.reviewer_id:
         reviewer = ReviewerRepository(db).get_by_reviewer_id(data.reviewer_id)
@@ -122,35 +124,25 @@ def analyze_review(data: AnalyzeReviewRequest, db: DbSession, _: AnalystUser) ->
         reviewer_db_id=reviewer_db_id,
         review_timestamp=data.review_timestamp or datetime.now(UTC),
     )
-
-    from app.models.review import Review
-
-    review = Review(
-        review_id=f"adhoc-{datetime.now(UTC).timestamp()}",
-        reviewer_id=reviewer_db_id or 1,
-        product_id=1,
-        rating=data.rating,
-        review_text=data.review_text,
-        review_timestamp=data.review_timestamp or datetime.now(UTC),
-        is_demo=True,
-    )
-    db.add(review)
-    db.commit()
-    db.refresh(review)
-
-    prediction = PredictionRepository(db).create(
-        review_id=review.id,
+    scores = result.modality_scores
+    return AnalyzeResponse(
+        persisted=False,
+        review_id=None,
         fraud_probability=result.fraud_probability,
         classification=result.classification,
         model_version=result.model_version,
-        text_risk=result.modality_scores.text_risk,
-        behavior_risk=result.modality_scores.behavior_risk,
-        temporal_risk=result.modality_scores.temporal_risk,
-        similarity_risk=result.modality_scores.similarity_risk,
-        graph_risk=result.modality_scores.graph_risk,
+        text_risk=scores.text_risk,
+        behavior_risk=scores.behavior_risk,
+        temporal_risk=scores.temporal_risk,
+        similarity_risk=scores.similarity_risk,
+        graph_risk=scores.graph_risk,
         explanation=result.explanation,
+        weights_used=result.weights_used,
+        missing_modalities=result.missing_modalities,
+        history_available=result.history_available,
+        similarity_backend=result.similarity_backend,
+        created_at=datetime.now(UTC),
     )
-    return PredictionResponse.model_validate(prediction)
 
 
 @router.get("/similarity/review/{review_db_id}", response_model=list[SimilarityResponse], summary="Get similar reviews")
@@ -212,10 +204,15 @@ def get_graph(db: DbSession, _: ViewerUser) -> GraphResponse:
 
 @router.get("/models/info", response_model=ModelInfoResponse, summary="Model system information")
 def model_info(_: ViewerUser) -> ModelInfoResponse:
+    from ml.similarity.engine import similarity_runtime
+
     settings = get_settings()
+    runtime = similarity_runtime()
     return ModelInfoResponse(
         model_version=settings.ml_model_version,
         device=settings.ml_device,
         modalities=["nlp", "behavior", "temporal", "similarity", "graph"],
         status="ready",
+        similarity_backend=runtime.get("embedding_backend", settings.similarity_backend),
+        vector_index=runtime.get("vector_index", "numpy"),
     )

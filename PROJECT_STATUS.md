@@ -77,10 +77,11 @@ Last updated: All phases implemented
 
 ## Known Limitations
 
-- Uses DEMO DATA only (clearly labeled)
-- TF-IDF similarity instead of transformer embeddings (CPU-friendly)
-- SQLite for local dev, PostgreSQL for Docker
+- Uses DEMO DATA for the dashboard unless Amazon/Yelp files are ingested
+- Sentence-Transformers when installed, otherwise TF-IDF (CPU-friendly)
+- SQLite for local dev, PostgreSQL + pgvector for Docker
 - Risk scores are estimates, not proof of fraud
+- `POST /predictions/analyze` does not insert database rows
 
 ## Quick Start
 

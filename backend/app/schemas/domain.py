@@ -80,6 +80,25 @@ class AnalyzeReviewRequest(BaseModel):
     review_timestamp: datetime | None = None
 
 
+class AnalyzeResponse(BaseModel):
+    persisted: bool = False
+    review_id: str | None = None
+    fraud_probability: float
+    classification: str
+    model_version: str
+    text_risk: float
+    behavior_risk: float
+    temporal_risk: float
+    similarity_risk: float
+    graph_risk: float
+    explanation: str | None = None
+    weights_used: dict[str, float] = Field(default_factory=dict)
+    missing_modalities: list[str] = Field(default_factory=list)
+    history_available: bool = True
+    similarity_backend: str = "tfidf"
+    created_at: datetime
+
+
 class SimilarityResponse(BaseModel):
     id: int
     review_a_id: int
@@ -164,3 +183,5 @@ class ModelInfoResponse(BaseModel):
     device: str
     modalities: list[str]
     status: str
+    similarity_backend: str = "tfidf"
+    vector_index: str = "numpy"

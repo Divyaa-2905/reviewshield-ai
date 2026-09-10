@@ -17,7 +17,7 @@ ReviewShield AI fuses five evidence modalities into an evidence-based risk asses
 - **NLP** — lexical diversity, promotional language, sentiment proxy
 - **Behaviour** — review volume, rating patterns, product diversity
 - **Temporal** — burst detection, synchronized activity
-- **Similarity** — TF-IDF semantic duplicate detection
+- **Similarity** — Sentence-Transformers embeddings with FAISS (TF-IDF + numpy fallback)
 - **Graph** — NetworkX reviewer-product network analysis
 
 ## Architecture
@@ -45,8 +45,8 @@ flowchart LR
 |-------|-------------|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS, Recharts |
 | Backend | Python, FastAPI, SQLAlchemy, JWT |
-| ML | scikit-learn, NetworkX, XGBoost, SHAP |
-| Database | SQLite (dev) / PostgreSQL (Docker) |
+| ML | scikit-learn, NetworkX, Sentence-Transformers (optional), FAISS (optional) |
+| Database | SQLite (dev) / PostgreSQL + pgvector (Docker) |
 | DevOps | Docker Compose, GitHub Actions |
 
 ## Quick Start
@@ -122,10 +122,14 @@ make build       # Frontend production build
 
 ## Limitations
 
-- Uses **DEMO DATA only** (synthetic, deterministic seed=42)
+- Seeded dashboard data is **demo data** (deterministic seed=42) unless you ingest Amazon/Yelp files
 - Risk scores are **estimates**, not proof of fraud
-- TF-IDF similarity used for CPU-friendly development
-- Not trained on real-world datasets
+- Sentence-Transformers/FAISS are optional; CI uses TF-IDF + numpy
+- Analyzer live scoring does **not** write reviews or predictions
+
+## Agent guide
+
+See [AGENTS.md](AGENTS.md) for the project contract used by coding agents.
 
 ## License
 

@@ -13,6 +13,7 @@ from app.models.review_similarity import ReviewSimilarity
 from app.models.reviewer import Reviewer
 from app.models.user import User, UserRole
 from app.services.ml_service import MLService
+from app.services.vector_store import VectorStore
 from ml.behavior.profiler import analyze_reviewer_behavior
 from ml.graph.intelligence import analyze_graph, build_review_graph
 from ml.similarity.engine import build_similarity_index, compute_all_pairs_efficient
@@ -164,6 +165,7 @@ def seed_demo_data(db: Session) -> None:
     db.commit()
 
     build_similarity_index(review_records)
+    VectorStore(db).persist_embeddings(review_records, "tfidf")
     pairs = compute_all_pairs_efficient(review_records, threshold=0.5)
     review_id_map = {r["review_id"]: r["db_id"] for r in review_records}
     for pair in pairs:

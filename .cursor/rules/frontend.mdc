@@ -1,0 +1,11 @@
+---
+description: Dashboard and Cytoscape graph conventions
+globs: frontend/**/*.tsx
+alwaysApply: false
+---
+
+# Frontend layer
+
+- Graph explorer uses Cytoscape.js in `GraphPage.tsx`
+- Analyzer must surface live, non-persisted analysis
+- Keep Tailwind slate theme and existing `ui.tsx` primitives

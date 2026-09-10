@@ -32,6 +32,8 @@ export function SettingsPage() {
             <p className="mt-2 text-sm text-slate-300">Version: {model.model_version}</p>
             <p className="text-sm text-slate-300">Device: {model.device}</p>
             <p className="text-sm text-slate-300">Status: {model.status}</p>
+            <p className="text-sm text-slate-300">Similarity: {model.similarity_backend || 'tfidf'}</p>
+            <p className="text-sm text-slate-300">Vector index: {model.vector_index || 'numpy'}</p>
             <p className="mt-2 text-xs text-slate-500">Modalities: {model.modalities?.join(', ')}</p>
           </div>
         )}

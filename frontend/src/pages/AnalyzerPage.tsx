@@ -61,8 +61,18 @@ export function AnalyzerPage() {
 
         {result && (
           <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-6">
+            {result.persisted === false && (
+              <p className="mb-3 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-slate-400">
+                Live analysis only — this result was not written to the database.
+              </p>
+            )}
             <RiskGauge value={result.fraud_probability} />
             <div className="mt-4 flex justify-center"><RiskBadge classification={result.classification} /></div>
+            {!result.history_available && (
+              <p className="mt-3 text-center text-xs text-amber-300">
+                Reviewer history missing. Behavior and temporal weights were redistributed.
+              </p>
+            )}
             <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
               {[
                 ['Text Risk', result.text_risk],
@@ -77,6 +87,11 @@ export function AnalyzerPage() {
                 </div>
               ))}
             </div>
+            {result.weights_used && (
+              <p className="mt-3 text-xs text-slate-500">
+                Weights: {Object.entries(result.weights_used).map(([k, v]) => `${k} ${(Number(v) * 100).toFixed(0)}%`).join(' · ')}
+              </p>
+            )}
             {result.explanation && (
               <pre className="mt-4 whitespace-pre-wrap rounded-lg bg-slate-800 p-4 text-xs text-slate-300">{result.explanation}</pre>
             )}

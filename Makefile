@@ -1,10 +1,13 @@
-.PHONY: help install install-backend install-frontend dev dev-backend dev-frontend seed test test-backend test-frontend test-ml lint lint-backend lint-frontend build build-frontend clean docker-up docker-down
+.PHONY: help install install-backend install-frontend install-ml dev dev-backend dev-frontend seed test test-backend test-frontend test-ml lint lint-backend lint-frontend build build-frontend eval-amazon eval-yelp clean docker-up docker-down
 
 help:
 	@echo "ReviewShield AI - Development Commands"
 	@echo ""
 	@echo "  make install          Install all dependencies"
+	@echo "  make install-ml       Optional Sentence-Transformers + FAISS"
 	@echo "  make seed             Seed demo data (SQLite)"
+	@echo "  make eval-amazon      Precision/recall/AUC on Amazon sample"
+	@echo "  make eval-yelp        Precision/recall/AUC on Yelp sample"
 	@echo "  make dev-backend      Run FastAPI backend"
 	@echo "  make dev-frontend     Run Vite frontend"
 	@echo "  make test             Run all tests"
@@ -18,6 +21,9 @@ install-backend:
 
 install-frontend:
 	cd frontend && npm install
+
+install-ml:
+	cd backend && . .venv/bin/activate && pip install -r requirements-ml.txt
 
 seed:
 	DATABASE_URL=sqlite:///./reviewshield.db PYTHONPATH=backend:. python scripts/seed_demo_data.py
@@ -34,7 +40,13 @@ test-backend:
 	cd backend && DATABASE_URL=sqlite:///:memory: . .venv/bin/activate && PYTHONPATH=..:. pytest -v
 
 test-ml:
-	cd backend && . .venv/bin/activate && PYTHONPATH=..:. pytest ../ml/tests -v
+	cd backend && . .venv/bin/activate && PYTHONPATH=..:. SIMILARITY_BACKEND=tfidf pytest ../ml/tests -v
+
+eval-amazon:
+	SIMILARITY_BACKEND=tfidf PYTHONPATH=backend:. python3 scripts/evaluate_public_dataset.py data/sample/amazon_reviews.csv
+
+eval-yelp:
+	SIMILARITY_BACKEND=tfidf PYTHONPATH=backend:. python3 scripts/evaluate_public_dataset.py data/sample/yelp_reviews.jsonl --kind yelp
 
 test-frontend:
 	cd frontend && npm run test -- --run
