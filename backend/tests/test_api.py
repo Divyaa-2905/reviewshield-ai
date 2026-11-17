@@ -68,6 +68,90 @@ def test_analyze_review_does_not_insert_rows() -> None:
     finally:
         db.close()
 
+
+def test_csv_batch_validate_analyze_and_export_are_read_only() -> None:
+    import csv
+    import io
+
+    from scripts._seed_impl import seed_demo_data
+
+    from app.models.prediction import Prediction
+    from app.models.review import Review
+
+    db = SessionLocal()
+    try:
+        seed_demo_data(db)
+        review_count = db.query(Review).count()
+        prediction_count = db.query(Prediction).count()
+    finally:
+        db.close()
+
+    login = client.post(
+        "/api/v1/auth/login",
+        data={"username": "analyst", "password": "analyst123"},
+    )
+    token = login.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    validation = client.post(
+        "/api/v1/predictions/batch/validate",
+        headers=headers,
+        files={
+            "file": (
+                "reviews.csv",
+                "review_text,rating,reviewer_id\n"
+                '"Great product, works well",5,\n'
+                '"Missing rating",not-a-number,\n',
+                "text/csv",
+            )
+        },
+    )
+    assert validation.status_code == 200
+    validated = validation.json()
+    assert validated["total_rows"] == 2
+    assert validated["valid_rows"] == 1
+    assert validated["invalid_rows"] == 1
+    assert validated["rows"][1]["errors"]
+
+    analysis = client.post(
+        "/api/v1/predictions/batch/analyze",
+        headers=headers,
+        json={"rows": [validated["rows"][0]]},
+    )
+    assert analysis.status_code == 200
+    results = analysis.json()
+    assert results["total_rows"] == 1
+    assert len(results["results"]) == 1
+    assert 0 <= results["results"][0]["fraud_probability"] <= 1
+
+    exported = client.post(
+        "/api/v1/predictions/batch/export",
+        headers=headers,
+        json={"results": results["results"]},
+    )
+    assert exported.status_code == 200
+    assert exported.headers["content-type"].startswith("text/csv")
+    exported_rows = list(csv.DictReader(io.StringIO(exported.text)))
+    assert len(exported_rows) == 1
+    assert exported_rows[0]["review_text"] == "Great product, works well"
+
+    formula_result = dict(results["results"][0], review_text="=1+1")
+    safe_export = client.post(
+        "/api/v1/predictions/batch/export",
+        headers=headers,
+        json={"results": [formula_result]},
+    )
+    assert safe_export.status_code == 200
+    safe_rows = list(csv.DictReader(io.StringIO(safe_export.text)))
+    assert safe_rows[0]["review_text"] == "'=1+1"
+
+    db = SessionLocal()
+    try:
+        assert db.query(Review).count() == review_count
+        assert db.query(Prediction).count() == prediction_count
+    finally:
+        db.close()
+
     login = client.post(
         "/api/v1/auth/login",
         data={"username": "analyst", "password": "analyst123"},

@@ -36,6 +36,7 @@ def init_db() -> None:
         behavior_profile,
         fraud_cluster,
         prediction,
+        prediction_feedback,
         product,
         review,
         review_embedding,

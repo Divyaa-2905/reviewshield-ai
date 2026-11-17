@@ -1,30 +1,53 @@
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, File, HTTPException, Query, Response, UploadFile
 
 from app.core.config import get_settings
 from app.core.deps import AnalystUser, DbSession, ViewerUser
+from app.models.prediction_feedback import PredictionFeedback
 from app.repositories.analysis_repository import ClusterRepository, SimilarityRepository
+from app.repositories.feedback_repository import FeedbackRepository
 from app.repositories.prediction_repository import PredictionRepository
 from app.repositories.product_repository import ProductRepository
 from app.repositories.review_repository import ReviewRepository
 from app.repositories.reviewer_repository import ReviewerRepository
+from app.schemas.csv_batch import (
+    BatchAnalysisResponse,
+    BatchAnalyzeRequest,
+    BatchExportRequest,
+    BatchValidationResponse,
+)
 from app.schemas.domain import (
     AnalyzeResponse,
     AnalyzeReviewRequest,
+    CampaignsResponse,
     DashboardStats,
     FraudClusterResponse,
     GraphResponse,
     ModelInfoResponse,
     PaginatedResponse,
+    PredictionFeedbackRequest,
+    PredictionFeedbackResponse,
     PredictionResponse,
     ProductResponse,
+    ProductTrustResponse,
     ReviewerResponse,
     ReviewResponse,
     SimilarityResponse,
 )
 from app.services.analytics_service import AnalyticsService
+from app.services.campaign_service import CampaignService
+from app.services.csv_batch_service import (
+    analyze_batch,
+    export_batch_csv,
+    read_csv_upload,
+    validate_csv_content,
+    validate_csv_rows,
+)
+from app.services.feedback_export_service import export_feedback_csv
 from app.services.ml_service import MLService
+from app.services.product_report_service import create_product_report
+from app.services.product_trust_service import ProductTrustService
 
 router = APIRouter(tags=["Reviews"])
 
@@ -91,6 +114,49 @@ def get_product(product_id: str, db: DbSession, _: ViewerUser) -> ProductRespons
     return ProductResponse.model_validate(product)
 
 
+@router.get(
+    "/products/{product_id}/trust",
+    response_model=ProductTrustResponse,
+    summary="Analyze product review trust signals",
+)
+def get_product_trust(product_id: str, db: DbSession, _: ViewerUser) -> ProductTrustResponse:
+    product = ProductRepository(db).get_by_product_id(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return ProductTrustResponse.model_validate(ProductTrustService(db).analyze(product))
+
+
+@router.get(
+    "/products/{product_id}/report.pdf",
+    summary="Download a product investigation report",
+    response_class=Response,
+)
+def download_product_report(product_id: str, db: DbSession, _: ViewerUser) -> Response:
+    product = ProductRepository(db).get_by_product_id(product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    analysis = ProductTrustService(db).analyze(product)
+    report = create_product_report(
+        {
+            "product_id": product.product_id,
+            "name": product.name,
+            "category": product.category,
+            "seller": product.seller,
+        },
+        analysis,
+    )
+    filename = "".join(
+        char if char.isascii() and (char.isalnum() or char in "._-") else "-"
+        for char in product.product_id
+    )
+    filename = filename.strip(".-") or "product"
+    return Response(
+        content=report,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="product-investigation-{filename}.pdf"'},
+    )
+
+
 @router.get("/predictions", response_model=PaginatedResponse, summary="List predictions")
 def list_predictions(
     db: DbSession,
@@ -108,6 +174,108 @@ def get_prediction(review_db_id: int, db: DbSession, _: ViewerUser) -> Predictio
     if not prediction:
         raise HTTPException(status_code=404, detail="Prediction not found")
     return PredictionResponse.model_validate(prediction)
+
+
+def _feedback_response(feedback: PredictionFeedback) -> PredictionFeedbackResponse:
+    review = feedback.prediction.review
+    product = review.product
+    return PredictionFeedbackResponse(
+        id=feedback.id,
+        prediction_id=feedback.prediction_id,
+        review_db_id=review.id,
+        review_id=review.review_id,
+        product_id=product.product_id if product else str(review.product_id),
+        product_name=product.name if product else "Unknown product",
+        prediction_classification=feedback.prediction.classification,
+        decision=feedback.decision,
+        comment=feedback.comment,
+        analyst_username=feedback.analyst.username,
+        created_at=feedback.created_at,
+        updated_at=feedback.updated_at,
+    )
+
+
+@router.get(
+    "/predictions/{prediction_id}/feedback",
+    response_model=PredictionFeedbackResponse | None,
+    summary="Get analyst feedback for a prediction",
+)
+def get_prediction_feedback(
+    prediction_id: int,
+    db: DbSession,
+    _: AnalystUser,
+) -> PredictionFeedbackResponse | None:
+    feedback = FeedbackRepository(db).get_by_prediction_id(prediction_id)
+    return _feedback_response(feedback) if feedback else None
+
+
+@router.put(
+    "/predictions/{prediction_id}/feedback",
+    response_model=PredictionFeedbackResponse,
+    summary="Record or update analyst feedback",
+)
+def upsert_prediction_feedback(
+    prediction_id: int,
+    data: PredictionFeedbackRequest,
+    db: DbSession,
+    analyst: AnalystUser,
+) -> PredictionFeedbackResponse:
+    prediction = PredictionRepository(db).get_by_id(prediction_id)
+    if not prediction:
+        raise HTTPException(status_code=404, detail="Prediction not found")
+    repository = FeedbackRepository(db)
+    feedback = repository.get_by_prediction_id(prediction_id)
+    if feedback is None:
+        feedback = PredictionFeedback(
+            prediction_id=prediction_id,
+            analyst_id=analyst.id,
+            decision=data.decision,
+            comment=data.comment,
+        )
+        db.add(feedback)
+    else:
+        feedback.analyst_id = analyst.id
+        feedback.decision = data.decision
+        feedback.comment = data.comment
+        feedback.updated_at = datetime.now(UTC)
+    db.commit()
+    feedback = repository.get_by_prediction_id(prediction_id)
+    if feedback is None:
+        raise HTTPException(status_code=500, detail="Feedback could not be loaded after saving")
+    return _feedback_response(feedback)
+
+
+@router.get(
+    "/feedback",
+    summary="List verified prediction feedback",
+)
+def list_feedback(
+    db: DbSession,
+    _: AnalystUser,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    decision: str | None = Query(None, pattern="^(correct|incorrect|needs_correction)$"),
+) -> PaginatedResponse:
+    items, total = FeedbackRepository(db).list_paginated(page, page_size, decision)
+    return _paginate([_feedback_response(item) for item in items], total, page, page_size)
+
+
+@router.get(
+    "/feedback/export",
+    summary="Export verified prediction feedback as CSV",
+    response_class=Response,
+)
+def download_feedback(
+    db: DbSession,
+    _: AnalystUser,
+    decision: str | None = Query(None, pattern="^(correct|incorrect|needs_correction)$"),
+) -> Response:
+    content = export_feedback_csv(FeedbackRepository(db).list_all(decision))
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="verified-feedback.csv"'},
+    )
 
 
 @router.post("/predictions/analyze", response_model=AnalyzeResponse, summary="Analyze a review")
@@ -145,6 +313,57 @@ def analyze_review(data: AnalyzeReviewRequest, db: DbSession, _: AnalystUser) ->
     )
 
 
+@router.post(
+    "/predictions/batch/validate",
+    response_model=BatchValidationResponse,
+    summary="Validate an uploaded review CSV",
+)
+async def validate_review_csv(
+    _: AnalystUser,
+    file: UploadFile = File(...),
+) -> BatchValidationResponse:
+    content = await read_csv_upload(file)
+    rows = validate_csv_content(content)
+    return BatchValidationResponse(**validate_csv_rows(rows))
+
+
+@router.post(
+    "/predictions/batch/analyze",
+    response_model=BatchAnalysisResponse,
+    summary="Analyze validated review rows",
+)
+def analyze_review_batch(
+    data: BatchAnalyzeRequest,
+    db: DbSession,
+    _: AnalystUser,
+) -> BatchAnalysisResponse:
+    invalid_rows = [
+        row.row_number
+        for row in data.rows
+        if row.errors or row.rating is None or not row.review_text.strip()
+    ]
+    if invalid_rows:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Batch contains invalid CSV row(s): {', '.join(map(str, invalid_rows))}.",
+        )
+    return BatchAnalysisResponse(**analyze_batch(data.rows, db))
+
+
+@router.post(
+    "/predictions/batch/export",
+    summary="Export batch analysis results as CSV",
+    response_class=Response,
+)
+def export_review_batch(data: BatchExportRequest, _: AnalystUser) -> Response:
+    content = export_batch_csv(data.results)
+    return Response(
+        content=content,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="review-analysis-results.csv"'},
+    )
+
+
 @router.get("/similarity/review/{review_db_id}", response_model=list[SimilarityResponse], summary="Get similar reviews")
 def get_similarities(review_db_id: int, db: DbSession, _: ViewerUser) -> list[SimilarityResponse]:
     items = SimilarityRepository(db).list_for_review(review_db_id)
@@ -168,6 +387,11 @@ def get_cluster(cluster_id: str, db: DbSession, _: ViewerUser) -> FraudClusterRe
     if not cluster:
         raise HTTPException(status_code=404, detail="Cluster not found")
     return FraudClusterResponse.model_validate(cluster)
+
+
+@router.get("/campaigns", response_model=CampaignsResponse, summary="Detect coordinated review campaigns")
+def get_campaigns(db: DbSession, _: ViewerUser) -> CampaignsResponse:
+    return CampaignsResponse(**CampaignService(db).get_campaigns())
 
 
 @router.get("/analytics/dashboard", response_model=DashboardStats, summary="Dashboard statistics")

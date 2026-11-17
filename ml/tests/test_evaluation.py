@@ -19,6 +19,22 @@ def test_precision_recall_auc() -> None:
     assert metrics["recall"] > 0.9
     assert metrics["roc_auc"] is not None and metrics["roc_auc"] > 0.9
     assert metrics["pr_auc"] is not None and metrics["pr_auc"] > 0.9
+    assert metrics["confusion_matrix"] == {
+        "true_negative": 3,
+        "false_positive": 0,
+        "false_negative": 0,
+        "true_positive": 3,
+    }
+
+
+def test_empty_evaluation_has_no_performance_metrics() -> None:
+    metrics = evaluate_binary_scores([], [])
+    assert metrics["labeled_reviews"] == 0
+    assert metrics["accuracy"] is None
+    assert metrics["precision"] is None
+    assert metrics["recall"] is None
+    assert metrics["f1"] is None
+    assert metrics["confusion_matrix"] is None
 
 
 def test_evaluate_predictions_skips_unlabeled() -> None:

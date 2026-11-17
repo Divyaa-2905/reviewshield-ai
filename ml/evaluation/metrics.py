@@ -79,13 +79,16 @@ def evaluate_binary_scores(
     if not y_true or len(y_true) != len(y_score):
         return {
             "labeled_reviews": 0,
-            "precision": 0.0,
-            "recall": 0.0,
-            "f1": 0.0,
-            "accuracy": 0.0,
+            "positive_labels": 0,
+            "negative_labels": 0,
+            "precision": None,
+            "recall": None,
+            "f1": None,
+            "accuracy": None,
             "roc_auc": None,
             "pr_auc": None,
             "threshold": threshold,
+            "confusion_matrix": None,
         }
 
     y_true_arr = np.asarray(y_true, dtype=int)
@@ -103,6 +106,12 @@ def evaluate_binary_scores(
         "accuracy": float(accuracy_score(y_true_arr, y_pred)),
         "roc_auc": None,
         "pr_auc": None,
+        "confusion_matrix": {
+            "true_negative": int(((y_true_arr == 0) & (y_pred == 0)).sum()),
+            "false_positive": int(((y_true_arr == 0) & (y_pred == 1)).sum()),
+            "false_negative": int(((y_true_arr == 1) & (y_pred == 0)).sum()),
+            "true_positive": int(((y_true_arr == 1) & (y_pred == 1)).sum()),
+        },
     }
 
     if len(np.unique(y_true_arr)) > 1:

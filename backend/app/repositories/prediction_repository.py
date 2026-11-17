@@ -15,6 +15,9 @@ class PredictionRepository:
             .first()
         )
 
+    def get_by_id(self, prediction_id: int) -> Prediction | None:
+        return self.db.query(Prediction).filter(Prediction.id == prediction_id).first()
+
     def list_paginated(self, page: int = 1, page_size: int = 20) -> tuple[list[Prediction], int]:
         query = self.db.query(Prediction).order_by(Prediction.created_at.desc())
         total = query.count()

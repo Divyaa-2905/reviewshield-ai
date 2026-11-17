@@ -1,12 +1,11 @@
 import random
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy.orm import Session
-
 from app.core.security import get_password_hash
 from app.models.behavior_profile import BehaviorProfile
 from app.models.fraud_cluster import FraudCluster
 from app.models.prediction import Prediction
+from app.models.prediction_feedback import PredictionFeedback
 from app.models.product import Product
 from app.models.review import Review
 from app.models.review_similarity import ReviewSimilarity
@@ -14,6 +13,8 @@ from app.models.reviewer import Reviewer
 from app.models.user import User, UserRole
 from app.services.ml_service import MLService
 from app.services.vector_store import VectorStore
+from sqlalchemy.orm import Session
+
 from ml.behavior.profiler import analyze_reviewer_behavior
 from ml.graph.intelligence import analyze_graph, build_review_graph
 from ml.similarity.engine import build_similarity_index, compute_all_pairs_efficient
@@ -25,6 +26,7 @@ random.seed(SEED)
 
 def reset_demo_data(db: Session) -> None:
     db.query(ReviewSimilarity).delete()
+    db.query(PredictionFeedback).delete()
     db.query(Prediction).delete()
     db.query(BehaviorProfile).delete()
     db.query(FraudCluster).delete()

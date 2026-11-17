@@ -2,6 +2,7 @@ from app.models.audit_log import AuditLog
 from app.models.behavior_profile import BehaviorProfile
 from app.models.fraud_cluster import FraudCluster
 from app.models.prediction import Prediction
+from app.models.prediction_feedback import PredictionFeedback
 from app.models.product import Product
 from app.models.review import Review
 from app.models.review_embedding import ReviewEmbedding
@@ -14,6 +15,7 @@ __all__ = [
     "BehaviorProfile",
     "FraudCluster",
     "Prediction",
+    "PredictionFeedback",
     "Product",
     "Review",
     "ReviewEmbedding",

@@ -1,17 +1,21 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import {
-  BarChart3, GitBranch, LayoutDashboard, LogOut, Search,
-  Settings, Shield, Users, Package, Network,
+  BadgeCheck, BarChart3, GitBranch, LayoutDashboard, LogOut, Search,
+  Settings, Shield, Users, Package, Network, FileSpreadsheet, ScanSearch,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
-const nav = [
+const nav: { to: string; icon: LucideIcon; label: string; analystOnly?: boolean }[] = [
   { to: '/', icon: LayoutDashboard, label: 'Overview' },
   { to: '/analyzer', icon: Search, label: 'Analyzer' },
+  { to: '/batch-analysis', icon: FileSpreadsheet, label: 'Batch CSV' },
   { to: '/reviews', icon: Shield, label: 'Investigation' },
   { to: '/reviewers', icon: Users, label: 'Reviewers' },
   { to: '/products', icon: Package, label: 'Products' },
+  { to: '/feedback', icon: BadgeCheck, label: 'Verified feedback', analystOnly: true },
   { to: '/clusters', icon: GitBranch, label: 'Clusters' },
+  { to: '/campaigns', icon: ScanSearch, label: 'Campaigns' },
   { to: '/graph', icon: Network, label: 'Graph' },
   { to: '/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/settings', icon: Settings, label: 'Settings' },
@@ -19,6 +23,7 @@ const nav = [
 
 export function DashboardLayout() {
   const { user, logout } = useAuth()
+  const visibleNav = nav.filter((item) => !item.analystOnly || user?.role === 'admin' || user?.role === 'analyst')
 
   return (
     <div className="flex min-h-screen bg-slate-950">
@@ -28,7 +33,7 @@ export function DashboardLayout() {
           <h1 className="text-lg font-bold text-white">Fraud Intelligence</h1>
         </div>
         <nav className="space-y-1">
-          {nav.map(({ to, icon: Icon, label }) => (
+          {visibleNav.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
