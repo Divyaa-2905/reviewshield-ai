@@ -1,32 +1,45 @@
-# React + TypeScript + Vite
+# ReviewShield AI 🛡️
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+ReviewShield AI is a full-stack, enterprise-grade **Review Fraud Intelligence & Analytics Platform** designed to detect, analyze, and mitigate fraudulent reviews, bot networks, and coordinated scam campaigns on e-commerce platforms. 
 
-Currently, two official plugins are available:
+Built as a college major project, this application combines a **FastAPI backend**, an **advanced machine learning & network analysis pipeline (Scikit-learn, NetworkX)**, and a **modern React + Tailwind CSS frontend**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🚀 Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. **Bulk Review Fraud Scanner:** Upload CSV files of product reviews for batch risk-scoring, data preview, validation, and filtered CSV exports.
+2. **Explainable Fraud Detection:** Multi-signal risk assessment breaking down NLP, behavioral, temporal, similarity, and graph metrics without relying on a single signal.
+3. **Coordinated Campaign Detection:** Identifies synchronized groups of suspicious reviewers and products using temporal patterns and graph network relationships.
+4. **Model Performance Dashboard:** Evaluates true chronological holdout performance metrics (Accuracy, Precision, Recall, F1-Score, and Confusion Matrix).
+5. **Product Trust Score:** Computes transparent product-level trust scores combining rating distributions, suspicious review ratios, and campaign involvement.
+6. **Human Feedback & Correction System:** Allows authorized analysts to review, correct, and comment on stored predictions with role-based access control.
+7. **PDF Investigation Reports:** Generates professional, downloadable investigation reports using ReportLab, complete with review statistics and visual charts.
 
-## Expanding the Oxlint configuration
+---
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## 🛠️ Tech Stack
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+* **Backend:** Python, FastAPI, SQLAlchemy, SQLite, ReportLab, Scikit-learn, NetworkX
+* **Frontend:** React 19, Vite, Tailwind CSS, TypeScript, Recharts, Lucide Icons, Cytoscape (Graph Visualizer)
+* **Testing & Tools:** Pytest, Ruff, Git, GitHub
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+---
+
+## 📂 Project Structure
+
+```text
+reviewshield-ai/
+├── backend/
+│   ├── app/
+│   │   ├── routers/       # API endpoints (Scanner, Analytics, Campaigns, Feedback)
+│   │   ├── services/      # Business logic & ML integration services
+│   │   └── models/        # SQLAlchemy database models
+│   └── tests/             # Backend & ML test suites
+├── frontend/
+│   ├── src/
+│   │   ├── components/    # Reusable UI widgets and layout templates
+│   │   └── pages/         # Dashboard pages (Overview, Analyzer, Batch CSV, Products, Verified Feedback, Campaigns, Analytics)
+├── ml/                    # Machine learning pipelines & feature extractors
+├── docs/                  # API documentation and project specifications
+└── PROJECT_STATUS.md      # Development milestones and architecture logs 
