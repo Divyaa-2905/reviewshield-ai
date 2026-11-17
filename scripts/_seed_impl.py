@@ -1,7 +1,7 @@
 import random
 from datetime import UTC, datetime, timedelta
 
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, verify_password
 from app.models.behavior_profile import BehaviorProfile
 from app.models.fraud_cluster import FraudCluster
 from app.models.prediction import Prediction
@@ -43,7 +43,8 @@ def seed_users(db: Session) -> None:
         ("viewer", "viewer@reviewshield.demo", "viewer123", UserRole.VIEWER),
     ]
     for username, email, password, role in users:
-        if not db.query(User).filter(User.username == username).first():
+        user = db.query(User).filter(User.username == username).first()
+        if user is None:
             db.add(
                 User(
                     username=username,
@@ -52,6 +53,8 @@ def seed_users(db: Session) -> None:
                     role=role,
                 )
             )
+        elif not verify_password(password, user.hashed_password):
+            user.hashed_password = get_password_hash(password)
     db.commit()
 
 

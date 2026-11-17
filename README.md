@@ -71,6 +71,12 @@ make dev-frontend
 - **API Docs**: http://localhost:8000/docs
 - **Login**: admin / admin123
 
+If demo accounts are missing from an existing database, run the user bootstrap
+from the same working directory and with the same `DATABASE_URL` used by the
+backend. For the default root-level SQLite database, run
+`python backend/app/bootstrap.py` from the repository root. This creates or
+repairs the demo account password hashes without reseeding review data.
+
 ## Docker
 
 ```bash

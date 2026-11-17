@@ -42,6 +42,43 @@ def test_login_and_dashboard() -> None:
     assert dashboard.json()["total_reviews"] > 0
 
 
+def test_bootstrap_repairs_default_admin_password_hash() -> None:
+    from app.models.user import User, UserRole
+
+    db = SessionLocal()
+    try:
+        admin = db.query(User).filter(User.username == "admin").first()
+        if admin is None:
+            admin = User(
+                username="admin",
+                email="admin@reviewshield.demo",
+                hashed_password="invalid-stale-hash",
+                role=UserRole.ADMIN,
+            )
+            db.add(admin)
+        else:
+            admin.hashed_password = "invalid-stale-hash"
+        db.commit()
+    finally:
+        db.close()
+
+    from app.bootstrap import bootstrap_demo_users
+
+    bootstrap_demo_users()
+    login = client.post(
+        "/api/v1/auth/login",
+        data={"username": "admin", "password": "admin123"},
+    )
+    assert login.status_code == 200
+    assert login.json()["access_token"]
+
+
+def test_verify_password_rejects_malformed_hash() -> None:
+    from app.core.security import verify_password
+
+    assert not verify_password("admin123", "invalid-stale-hash")
+
+
 def test_analyze_review_requires_auth() -> None:
     response = client.post(
         "/api/v1/predictions/analyze",
